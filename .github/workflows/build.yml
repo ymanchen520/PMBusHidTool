@@ -1,0 +1,32 @@
+# .github/workflows/build.yml
+name: .NET Build and Release
+
+on:
+  push:
+    branches: [ "main" ] # 当代码推送到主分支时触发
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    runs-on: windows-latest # 使用最新的Windows服务器进行编译
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4 # 第一步：下载你的代码
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4 # 第二步：安装 .NET 8 环境
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore # 第三步：恢复项目依赖（如HidSharp）
+
+    - name: Publish application
+      run: dotnet publish -r win-x64 -c Release --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true # 第四步：执行编译和打包命令
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4 # 第五步：上传编译好的.exe文件
+      with:
+        name: PMBus-Tool-Executable # 上传文件的名称
+        path: ./bin/Release/net8.0-windows/win-x64/publish/PMBusHidTool.exe # 要上传的.exe文件的路径
